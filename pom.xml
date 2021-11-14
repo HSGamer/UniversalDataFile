@@ -9,6 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>universal-data-file-core</module>
+        <module>universal-data-file-implementation</module>
     </modules>
     <packaging>pom</packaging>
 
