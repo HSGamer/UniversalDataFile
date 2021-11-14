@@ -45,13 +45,13 @@ public final class UniversalDataWriter {
         }
         try (BufferedWriter bufferedWriter = new BufferedWriter(writer.get())) {
             for (FormatWriter formatWriter : formatWriters) {
-                bufferedWriter.write(formatWriter.getStartFormat());
+                bufferedWriter.write(Constants.START_FORMAT + formatWriter.getName());
                 bufferedWriter.newLine();
                 for (String line : formatWriter.write()) {
                     bufferedWriter.write(line);
                     bufferedWriter.newLine();
                 }
-                bufferedWriter.write(formatWriter.getEndFormat());
+                bufferedWriter.write(Constants.END_FORMAT);
                 bufferedWriter.newLine();
             }
         }

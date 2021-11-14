@@ -44,19 +44,23 @@ public final class UniversalDataReader {
             throw new IllegalStateException("No format reader");
         }
         try (BufferedReader bufferedReader = new BufferedReader(fromReader)) {
+            List<String> lines = new ArrayList<>();
+
             FormatReader formatReader = null;
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                if (line.isEmpty()) continue;
-                if (formatReader == null) {
-                    formatReader = getFormatReader(line);
-                    continue;
+                if (formatReader == null && line.startsWith(Constants.START_FORMAT)) {
+                    String name = line.substring(Constants.START_FORMAT.length());
+                    formatReader = getFormatReader(name);
+                } else if (formatReader != null) {
+                    if (line.startsWith(Constants.END_FORMAT)) {
+                        formatReader.read(lines);
+                        lines.clear();
+                        formatReader = null;
+                    } else {
+                        lines.add(line);
+                    }
                 }
-                if (line.equals(formatReader.getEndFormat())) {
-                    formatReader = null;
-                    continue;
-                }
-                formatReader.read(line);
             }
         }
     }
@@ -69,9 +73,9 @@ public final class UniversalDataReader {
         }
     }
 
-    private FormatReader getFormatReader(String line) {
+    private FormatReader getFormatReader(String name) {
         return formatReaders.parallelStream()
-                .filter(formatReader -> line.equals(formatReader.getStartFormat()))
+                .filter(formatReader -> formatReader.getName().equals(name))
                 .findFirst()
                 .orElse(null);
     }
