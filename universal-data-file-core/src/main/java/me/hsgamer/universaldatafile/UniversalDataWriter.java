@@ -51,12 +51,9 @@ public final class UniversalDataWriter {
             for (FormatWriter formatWriter : formatWriters) {
                 bufferedWriter.write(formatWriter.getStartFormat());
                 bufferedWriter.newLine();
-                List<String> lines = formatWriter.write();
-                for (int i = 0; i < lines.size(); i++) {
-                    bufferedWriter.write(lines.get(i));
-                    if (i != lines.size() - 1) {
-                        bufferedWriter.newLine();
-                    }
+                for (String line : formatWriter.write()) {
+                    bufferedWriter.write(line);
+                    bufferedWriter.newLine();
                 }
                 bufferedWriter.write(formatWriter.getEndFormat());
                 bufferedWriter.newLine();

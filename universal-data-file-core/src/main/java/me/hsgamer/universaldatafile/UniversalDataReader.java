@@ -52,8 +52,10 @@ public final class UniversalDataReader {
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 if (line.isEmpty()) continue;
-                if (formatReader == null) formatReader = getFormatReader(line);
-                if (formatReader == null) continue;
+                if (formatReader == null) {
+                    formatReader = getFormatReader(line);
+                    continue;
+                }
                 if (line.equals(formatReader.getEndFormat())) {
                     formatReader = null;
                     continue;
@@ -72,11 +74,9 @@ public final class UniversalDataReader {
     }
 
     private FormatReader getFormatReader(String line) {
-        for (FormatReader formatReader : formatReaders) {
-            if (line.equals(formatReader.getStartFormat())) {
-                return formatReader;
-            }
-        }
-        return null;
+        return formatReaders.parallelStream()
+                .filter(formatReader -> line.equals(formatReader.getStartFormat()))
+                .findFirst()
+                .orElse(null);
     }
 }

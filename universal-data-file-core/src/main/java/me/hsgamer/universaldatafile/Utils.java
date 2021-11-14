@@ -10,7 +10,10 @@ public final class Utils {
 
     public static void createIfNotExists(File file) throws IOException {
         if (!file.exists()) {
-            file.getParentFile().mkdirs();
+            File parent = file.getParentFile();
+            if (parent != null) {
+                parent.mkdirs();
+            }
             file.createNewFile();
         }
     }
