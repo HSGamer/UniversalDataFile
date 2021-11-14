@@ -6,10 +6,10 @@ public final class UniversalDataFile {
     }
 
     public static UniversalDataReader reader() {
-        return UniversalDataReader.create();
+        return new UniversalDataReader();
     }
 
     public static UniversalDataWriter writer() {
-        return UniversalDataWriter.create();
+        return new UniversalDataWriter();
     }
 }

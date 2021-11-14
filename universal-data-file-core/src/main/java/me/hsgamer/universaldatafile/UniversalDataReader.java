@@ -11,13 +11,9 @@ public final class UniversalDataReader {
     private final List<FormatReader> formatReaders;
     private final AtomicReference<Reader> reader;
 
-    private UniversalDataReader() {
+    UniversalDataReader() {
         formatReaders = new ArrayList<>();
         reader = new AtomicReference<>();
-    }
-
-    public static UniversalDataReader create() {
-        return new UniversalDataReader();
     }
 
     public UniversalDataReader addFormatReader(FormatReader reader) {
