@@ -2,8 +2,6 @@ package me.hsgamer.universaldatafile.api;
 
 import java.util.List;
 
-public interface FormatWriter {
+public interface FormatWriter extends Identifier {
     List<String> write();
-
-    String getName();
 }

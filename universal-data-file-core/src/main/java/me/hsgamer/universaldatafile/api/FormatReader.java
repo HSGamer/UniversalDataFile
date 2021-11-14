@@ -1,7 +1,5 @@
 package me.hsgamer.universaldatafile.api;
 
-public interface FormatReader {
+public interface FormatReader extends Identifier {
     void read(String line);
-
-    String getName();
 }

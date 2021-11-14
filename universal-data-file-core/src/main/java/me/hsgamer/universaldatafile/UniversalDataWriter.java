@@ -2,14 +2,12 @@ package me.hsgamer.universaldatafile;
 
 import me.hsgamer.universaldatafile.api.FormatWriter;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class UniversalDataWriter {
+public final class UniversalDataWriter {
     private final List<FormatWriter> formatWriters;
     private final AtomicReference<Writer> writer;
 
@@ -32,6 +30,15 @@ public class UniversalDataWriter {
         return this;
     }
 
+    public UniversalDataWriter setFile(File file) {
+        try {
+            Utils.createIfNotExists(file);
+            return setWriter(new FileWriter(file));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void write() throws IOException {
         Writer toWriter = writer.get();
         if (toWriter == null) {
@@ -42,7 +49,7 @@ public class UniversalDataWriter {
         }
         try (BufferedWriter bufferedWriter = new BufferedWriter(writer.get())) {
             for (FormatWriter formatWriter : formatWriters) {
-                bufferedWriter.write(Constants.START_FORMAT + formatWriter.getName());
+                bufferedWriter.write(formatWriter.getStartFormat());
                 bufferedWriter.newLine();
                 List<String> lines = formatWriter.write();
                 for (int i = 0; i < lines.size(); i++) {
@@ -51,7 +58,7 @@ public class UniversalDataWriter {
                         bufferedWriter.newLine();
                     }
                 }
-                bufferedWriter.write(Constants.END_FORMAT + formatWriter.getName());
+                bufferedWriter.write(formatWriter.getEndFormat());
                 bufferedWriter.newLine();
             }
         }

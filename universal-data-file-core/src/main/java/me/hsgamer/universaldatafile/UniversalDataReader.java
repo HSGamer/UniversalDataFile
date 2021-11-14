@@ -2,14 +2,12 @@ package me.hsgamer.universaldatafile;
 
 import me.hsgamer.universaldatafile.api.FormatReader;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class UniversalDataReader {
+public final class UniversalDataReader {
     private final List<FormatReader> formatReaders;
     private final AtomicReference<Reader> reader;
 
@@ -32,6 +30,15 @@ public class UniversalDataReader {
         return this;
     }
 
+    public UniversalDataReader setFile(File file) {
+        try {
+            Utils.createIfNotExists(file);
+            return setReader(new FileReader(file));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void read() throws IOException {
         Reader fromReader = reader.get();
         if (fromReader == null) {
@@ -47,7 +54,7 @@ public class UniversalDataReader {
                 if (line.isEmpty()) continue;
                 if (formatReader == null) formatReader = getFormatReader(line);
                 if (formatReader == null) continue;
-                if (line.equals(Constants.END_FORMAT + formatReader.getName())) {
+                if (line.equals(formatReader.getEndFormat())) {
                     formatReader = null;
                     continue;
                 }
@@ -66,7 +73,7 @@ public class UniversalDataReader {
 
     private FormatReader getFormatReader(String line) {
         for (FormatReader formatReader : formatReaders) {
-            if (line.equals(Constants.START_FORMAT + formatReader.getName())) {
+            if (line.equals(formatReader.getStartFormat())) {
                 return formatReader;
             }
         }
