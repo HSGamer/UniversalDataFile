@@ -1,6 +1,7 @@
 package me.hsgamer.universaldatafile;
 
 import me.hsgamer.universaldatafile.api.FormatWriter;
+import me.hsgamer.universaldatafile.exception.RuntimeIOException;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -31,11 +32,11 @@ public final class UniversalDataWriter {
             Utils.createIfNotExists(file);
             return setWriter(new FileWriter(file));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeIOException(e);
         }
     }
 
-    public void write() throws IOException {
+    public void write() {
         Writer toWriter = writer.get();
         if (toWriter == null) {
             throw new IllegalStateException("Writer is null");
@@ -54,14 +55,8 @@ public final class UniversalDataWriter {
                 bufferedWriter.write(Constants.END_FORMAT);
                 bufferedWriter.newLine();
             }
-        }
-    }
-
-    public void writeSafe() {
-        try {
-            write();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeIOException(e);
         }
     }
 }

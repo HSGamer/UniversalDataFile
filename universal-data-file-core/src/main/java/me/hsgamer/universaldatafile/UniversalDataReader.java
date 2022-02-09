@@ -1,6 +1,7 @@
 package me.hsgamer.universaldatafile;
 
 import me.hsgamer.universaldatafile.api.FormatReader;
+import me.hsgamer.universaldatafile.exception.RuntimeIOException;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public final class UniversalDataReader {
         }
     }
 
-    public void read() throws IOException {
+    public void read() {
         Reader fromReader = reader.get();
         if (fromReader == null) {
             throw new IllegalStateException("Reader is null");
@@ -62,14 +63,8 @@ public final class UniversalDataReader {
                     }
                 }
             }
-        }
-    }
-
-    public void readSafe() {
-        try {
-            read();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeIOException(e);
         }
     }
 
