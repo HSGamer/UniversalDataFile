@@ -16,7 +16,7 @@ public final class Utils {
         if (parent != null && !parent.exists() && !parent.mkdirs()) {
             throw new IOException("Failed to create directory " + parent);
         }
-        if (file.createNewFile()) {
+        if (!file.createNewFile()) {
             throw new IOException("Failed to create file " + file);
         }
     }
