@@ -2,18 +2,22 @@ package me.hsgamer.universaldatafile;
 
 import me.hsgamer.universaldatafile.api.FormatReader;
 import me.hsgamer.universaldatafile.exception.RuntimeIOException;
+import me.hsgamer.universaldatafile.runner.ReaderRunner;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class UniversalDataReader {
-    private final List<FormatReader> formatReaders;
+    private final Map<String, FormatReader> formatReaders;
     private final AtomicReference<Reader> reader;
 
     private UniversalDataReader() {
-        formatReaders = new ArrayList<>();
+        formatReaders = new HashMap<>();
         reader = new AtomicReference<>();
     }
 
@@ -22,7 +26,7 @@ public final class UniversalDataReader {
     }
 
     public UniversalDataReader addFormatReader(FormatReader reader) {
-        formatReaders.add(reader);
+        formatReaders.put(reader.getName(), reader);
         return this;
     }
 
@@ -40,26 +44,29 @@ public final class UniversalDataReader {
         }
     }
 
-    public void read() {
+    public CompletableFuture<Void> read() {
         Reader fromReader = reader.get();
         if (fromReader == null) {
-            throw new IllegalStateException("Reader is null");
+            return CompletableFuture.failedFuture(new IllegalStateException("Reader is null"));
         }
         if (formatReaders.isEmpty()) {
-            throw new IllegalStateException("No format reader");
+            return CompletableFuture.failedFuture(new IllegalStateException("No format reader"));
         }
         try (BufferedReader bufferedReader = new BufferedReader(fromReader)) {
-            List<String> lines = new ArrayList<>();
+            List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
 
+            List<String> lines = new ArrayList<>();
             FormatReader formatReader = null;
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 if (formatReader == null && line.startsWith(Constants.START_FORMAT)) {
                     String name = line.substring(Constants.START_FORMAT.length());
-                    formatReader = getFormatReader(name);
+                    formatReader = formatReaders.get(name);
                 } else if (formatReader != null) {
                     if (line.startsWith(Constants.END_FORMAT)) {
-                        formatReader.read(lines);
+                        List<String> finalLines = new ArrayList<>(lines);
+                        ReaderRunner readerRunner = new ReaderRunner(formatReader, finalLines);
+                        completableFutures.add(CompletableFuture.runAsync(readerRunner));
                         lines.clear();
                         formatReader = null;
                     } else {
@@ -67,15 +74,13 @@ public final class UniversalDataReader {
                     }
                 }
             }
+            return CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]));
         } catch (IOException e) {
-            throw new RuntimeIOException(e);
+            return CompletableFuture.failedFuture(new RuntimeIOException(e));
         }
     }
 
-    private FormatReader getFormatReader(String name) {
-        return formatReaders.parallelStream()
-                .filter(formatReader -> formatReader.getName().equals(name))
-                .findFirst()
-                .orElse(null);
+    public void readSync() {
+        read().join();
     }
 }

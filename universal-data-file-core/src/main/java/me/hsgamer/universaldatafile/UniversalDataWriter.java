@@ -2,10 +2,13 @@ package me.hsgamer.universaldatafile;
 
 import me.hsgamer.universaldatafile.api.FormatWriter;
 import me.hsgamer.universaldatafile.exception.RuntimeIOException;
+import me.hsgamer.universaldatafile.runner.WriterRunner;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class UniversalDataWriter {
@@ -40,27 +43,44 @@ public final class UniversalDataWriter {
         }
     }
 
-    public void write() {
+    public CompletableFuture<Void> write() {
         Writer toWriter = writer.get();
         if (toWriter == null) {
-            throw new IllegalStateException("Writer is null");
+            return CompletableFuture.failedFuture(new IllegalStateException("Writer is null"));
         }
         if (formatWriters.isEmpty()) {
-            throw new IllegalStateException("No format writer");
+            return CompletableFuture.failedFuture(new IllegalStateException("No format writer"));
         }
-        try (BufferedWriter bufferedWriter = new BufferedWriter(writer.get())) {
-            for (FormatWriter formatWriter : formatWriters) {
-                bufferedWriter.write(Constants.START_FORMAT + formatWriter.getName());
-                bufferedWriter.newLine();
-                for (String line : formatWriter.write()) {
-                    bufferedWriter.write(line);
-                    bufferedWriter.newLine();
-                }
-                bufferedWriter.write(Constants.END_FORMAT);
-                bufferedWriter.newLine();
-            }
-        } catch (IOException e) {
-            throw new RuntimeIOException(e);
+
+        List<WriterRunner> writerRunners = new LinkedList<>();
+        List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
+        for (FormatWriter formatWriter : formatWriters) {
+            WriterRunner writerRunner = new WriterRunner(formatWriter);
+            writerRunners.add(writerRunner);
+            completableFutures.add(CompletableFuture.runAsync(writerRunner));
         }
+
+        return CompletableFuture
+                .allOf(completableFutures.toArray(new CompletableFuture[0]))
+                .thenAccept(v -> {
+                    try (BufferedWriter bufferedWriter = new BufferedWriter(writer.get())) {
+                        for (WriterRunner writerRunner : writerRunners) {
+                            bufferedWriter.write(Constants.START_FORMAT + writerRunner.getName());
+                            bufferedWriter.newLine();
+                            for (String line : writerRunner.getLines()) {
+                                bufferedWriter.write(line);
+                                bufferedWriter.newLine();
+                            }
+                            bufferedWriter.write(Constants.END_FORMAT);
+                            bufferedWriter.newLine();
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeIOException(e);
+                    }
+                });
+    }
+
+    public void writeSync() {
+        write().join();
     }
 }
