@@ -9,12 +9,15 @@ public final class Utils {
     }
 
     public static void createIfNotExists(File file) throws IOException {
-        if (!file.exists()) {
-            File parent = file.getParentFile();
-            if (parent != null) {
-                parent.mkdirs();
-            }
-            file.createNewFile();
+        if (file.exists()) {
+            return;
+        }
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IOException("Failed to create directory " + parent);
+        }
+        if (file.createNewFile()) {
+            throw new IOException("Failed to create file " + file);
         }
     }
 }
