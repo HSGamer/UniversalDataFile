@@ -4,7 +4,7 @@ import me.hsgamer.universaldatafile.api.FormatReader;
 
 import java.util.List;
 
-public class ReaderRunner implements Runnable {
+public class ReaderRunner extends TaskRunner {
     private final FormatReader reader;
     private final List<String> lines;
 

@@ -57,7 +57,6 @@ public final class UniversalDataWriter {
         for (FormatWriter formatWriter : formatWriters) {
             WriterRunner writerRunner = new WriterRunner(formatWriter);
             writerRunners.add(writerRunner);
-            CompletableFuture.runAsync(writerRunner);
         }
         return CompletableFuture.runAsync(() -> executeWriterQueue(writerRunners));
     }

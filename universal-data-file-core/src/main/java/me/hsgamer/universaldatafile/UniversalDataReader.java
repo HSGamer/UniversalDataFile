@@ -66,7 +66,7 @@ public final class UniversalDataReader {
                     if (line.startsWith(Constants.END_FORMAT)) {
                         List<String> finalLines = new ArrayList<>(lines);
                         ReaderRunner readerRunner = new ReaderRunner(formatReader, finalLines);
-                        completableFutures.add(CompletableFuture.runAsync(readerRunner));
+                        completableFutures.add(readerRunner.getCompletableFuture());
                         lines.clear();
                         formatReader = null;
                     } else {
