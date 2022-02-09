@@ -12,9 +12,13 @@ public final class UniversalDataReader {
     private final List<FormatReader> formatReaders;
     private final AtomicReference<Reader> reader;
 
-    UniversalDataReader() {
+    private UniversalDataReader() {
         formatReaders = new ArrayList<>();
         reader = new AtomicReference<>();
+    }
+
+    public static UniversalDataReader create() {
+        return new UniversalDataReader();
     }
 
     public UniversalDataReader addFormatReader(FormatReader reader) {
@@ -32,7 +36,7 @@ public final class UniversalDataReader {
             Utils.createIfNotExists(file);
             return setReader(new FileReader(file));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeIOException(e);
         }
     }
 

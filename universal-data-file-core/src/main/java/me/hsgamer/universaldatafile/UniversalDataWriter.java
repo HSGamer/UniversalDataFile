@@ -12,9 +12,13 @@ public final class UniversalDataWriter {
     private final List<FormatWriter> formatWriters;
     private final AtomicReference<Writer> writer;
 
-    UniversalDataWriter() {
+    private UniversalDataWriter() {
         this.formatWriters = new ArrayList<>();
         this.writer = new AtomicReference<>();
+    }
+
+    public static UniversalDataWriter create() {
+        return new UniversalDataWriter();
     }
 
     public UniversalDataWriter addFormatWriter(FormatWriter formatWriter) {
