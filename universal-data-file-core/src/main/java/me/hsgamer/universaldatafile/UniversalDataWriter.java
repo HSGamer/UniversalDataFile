@@ -59,34 +59,35 @@ public final class UniversalDataWriter {
             writerRunners.add(writerRunner);
             CompletableFuture.runAsync(writerRunner);
         }
-
-        return CompletableFuture.runAsync(() -> {
-            try (BufferedWriter bufferedWriter = new BufferedWriter(writer.get())) {
-                while (!writerRunners.isEmpty()) {
-                    WriterRunner writerRunner = writerRunners.poll();
-                    if (writerRunner == null) {
-                        continue;
-                    }
-                    if (writerRunner.isCompleted()) {
-                        bufferedWriter.write(Constants.START_FORMAT + writerRunner.getName());
-                        bufferedWriter.newLine();
-                        for (String line : writerRunner.getLines()) {
-                            bufferedWriter.write(line);
-                            bufferedWriter.newLine();
-                        }
-                        bufferedWriter.write(Constants.END_FORMAT);
-                        bufferedWriter.newLine();
-                    } else {
-                        writerRunners.add(writerRunner);
-                    }
-                }
-            } catch (IOException e) {
-                throw new RuntimeIOException(e);
-            }
-        });
+        return CompletableFuture.runAsync(() -> executeWriterQueue(writerRunners));
     }
 
     public void writeSync() {
         write().join();
+    }
+
+    private void executeWriterQueue(Queue<WriterRunner> writerRunners) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(writer.get())) {
+            while (!writerRunners.isEmpty()) {
+                WriterRunner writerRunner = writerRunners.poll();
+                if (writerRunner == null) {
+                    continue;
+                }
+                if (writerRunner.isCompleted()) {
+                    bufferedWriter.write(Constants.START_FORMAT + writerRunner.getName());
+                    bufferedWriter.newLine();
+                    for (String line : writerRunner.getLines()) {
+                        bufferedWriter.write(line);
+                        bufferedWriter.newLine();
+                    }
+                    bufferedWriter.write(Constants.END_FORMAT);
+                    bufferedWriter.newLine();
+                } else {
+                    writerRunners.add(writerRunner);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        }
     }
 }
