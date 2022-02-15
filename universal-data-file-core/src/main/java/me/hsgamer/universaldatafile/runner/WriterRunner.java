@@ -19,7 +19,7 @@ public class WriterRunner extends TaskRunner {
     }
 
     public boolean isCompleted() {
-        return getCompletableFuture().isDone();
+        return getOrRunFuture().isDone();
     }
 
     public String getName() {

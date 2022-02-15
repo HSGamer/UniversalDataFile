@@ -52,32 +52,38 @@ public final class UniversalDataReader {
         if (formatReaders.isEmpty()) {
             return CompletableFuture.failedFuture(new IllegalStateException("No format reader"));
         }
-        try (BufferedReader bufferedReader = new BufferedReader(fromReader)) {
-            List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-
-            List<String> lines = new ArrayList<>();
-            FormatReader formatReader = null;
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                if (formatReader == null && line.startsWith(Constants.START_FORMAT)) {
-                    String name = line.substring(Constants.START_FORMAT.length());
-                    formatReader = formatReaders.get(name);
-                } else if (formatReader != null) {
-                    if (line.startsWith(Constants.END_FORMAT)) {
-                        List<String> finalLines = new ArrayList<>(lines);
-                        ReaderRunner readerRunner = new ReaderRunner(formatReader, finalLines);
-                        completableFutures.add(readerRunner.getCompletableFuture());
-                        lines.clear();
-                        formatReader = null;
-                    } else {
-                        lines.add(line);
+        return CompletableFuture.supplyAsync(() -> {
+            try (BufferedReader bufferedReader = new BufferedReader(fromReader)) {
+                List<ReaderRunner> readerRunners = new ArrayList<>();
+                List<String> lines = new ArrayList<>();
+                FormatReader formatReader = null;
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (formatReader == null && line.startsWith(Constants.START_FORMAT)) {
+                        String name = line.substring(Constants.START_FORMAT.length());
+                        formatReader = formatReaders.get(name);
+                    } else if (formatReader != null) {
+                        if (line.startsWith(Constants.END_FORMAT)) {
+                            List<String> finalLines = new ArrayList<>(lines);
+                            readerRunners.add(new ReaderRunner(formatReader, finalLines));
+                            lines.clear();
+                            formatReader = null;
+                        } else {
+                            lines.add(line);
+                        }
                     }
                 }
+                return readerRunners;
+            } catch (IOException e) {
+                throw new RuntimeIOException(e);
             }
-            return CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]));
-        } catch (IOException e) {
-            return CompletableFuture.failedFuture(new RuntimeIOException(e));
-        }
+        }).thenAcceptAsync(readerRunners -> {
+            List<CompletableFuture<Void>> completableFutures = new ArrayList<>(readerRunners.size());
+            for (ReaderRunner readerRunner : readerRunners) {
+                completableFutures.add(readerRunner.getOrRunFuture());
+            }
+            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
+        });
     }
 
     public void readSync() {

@@ -3,15 +3,14 @@ package me.hsgamer.universaldatafile.runner;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class TaskRunner {
-    private final CompletableFuture<Void> completableFuture;
-
-    protected TaskRunner() {
-        completableFuture = CompletableFuture.runAsync(this::run);
-    }
+    private CompletableFuture<Void> completableFuture;
 
     public abstract void run();
 
-    public CompletableFuture<Void> getCompletableFuture() {
+    public CompletableFuture<Void> getOrRunFuture() {
+        if (completableFuture == null) {
+            completableFuture = CompletableFuture.runAsync(this::run);
+        }
         return completableFuture;
     }
 }
