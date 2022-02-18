@@ -18,12 +18,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class UniversalDataReader {
     private final Map<String, FormatReader> formatReaders;
     private final AtomicReference<Reader> reader;
-    private final AtomicInteger limitQueue;
+    private final AtomicInteger limitRunningPool;
 
     private UniversalDataReader() {
         formatReaders = new HashMap<>();
         reader = new AtomicReference<>();
-        limitQueue = new AtomicInteger(10);
+        limitRunningPool = new AtomicInteger(10);
     }
 
     public static UniversalDataReader create() {
@@ -49,8 +49,8 @@ public final class UniversalDataReader {
         }
     }
 
-    public UniversalDataReader setLimitQueue(int limit) {
-        this.limitQueue.set(limit);
+    public UniversalDataReader setLimitRunningPool(int limit) {
+        this.limitRunningPool.set(limit);
         return this;
     }
 
@@ -88,7 +88,7 @@ public final class UniversalDataReader {
                         throw new RuntimeIOException(e);
                     }
                 })
-                .thenApplyAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get(), 0))
+                .thenApplyAsync(readerRunners -> new QueueRunner<>(readerRunners, limitRunningPool.get(), 0))
                 .thenComposeAsync(TaskRunner::getOrRunFuture);
     }
 
