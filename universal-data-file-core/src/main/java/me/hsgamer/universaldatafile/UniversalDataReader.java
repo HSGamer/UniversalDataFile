@@ -4,6 +4,7 @@ import me.hsgamer.universaldatafile.api.FormatReader;
 import me.hsgamer.universaldatafile.exception.RuntimeIOException;
 import me.hsgamer.universaldatafile.runner.QueueRunner;
 import me.hsgamer.universaldatafile.runner.ReaderRunner;
+import me.hsgamer.universaldatafile.runner.TaskRunner;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -86,7 +87,8 @@ public final class UniversalDataReader {
             } catch (IOException e) {
                 throw new RuntimeIOException(e);
             }
-        }).thenComposeAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get()).getOrRunFuture());
+        }).thenApplyAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get()))
+                .thenComposeAsync(TaskRunner::getOrRunFuture);
     }
 
     public void readSync() {
