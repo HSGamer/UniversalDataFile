@@ -17,12 +17,14 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class UniversalDataWriter {
     private final List<FormatWriter> formatWriters;
     private final AtomicReference<Writer> writer;
-    private final AtomicInteger limitQueue;
+    private final AtomicInteger limitRunningPool;
+    private final AtomicInteger limitCompletedPool;
 
     private UniversalDataWriter() {
         this.formatWriters = new ArrayList<>();
         this.writer = new AtomicReference<>();
-        this.limitQueue = new AtomicInteger(10);
+        this.limitRunningPool = new AtomicInteger(10);
+        this.limitCompletedPool = new AtomicInteger(10);
     }
 
     public static UniversalDataWriter create() {
@@ -48,8 +50,13 @@ public final class UniversalDataWriter {
         }
     }
 
-    public UniversalDataWriter setLimitQueue(int limit) {
-        this.limitQueue.set(limit);
+    public UniversalDataWriter setLimitRunningPool(int limit) {
+        this.limitRunningPool.set(limit);
+        return this;
+    }
+
+    public UniversalDataWriter setLimitCompletedPool(int limit) {
+        this.limitCompletedPool.set(limit);
         return this;
     }
 
@@ -70,7 +77,7 @@ public final class UniversalDataWriter {
                 writerRunners.add(writerRunner);
             }
             return writerRunners;
-        }).thenApplyAsync(writerRunners -> new QueueRunner<>(writerRunners, limitQueue.get()) {
+        }).thenApplyAsync(writerRunners -> new QueueRunner<>(writerRunners, limitRunningPool.get(), limitCompletedPool.get()) {
             final BufferedWriter bufferedWriter = new BufferedWriter(writer.get());
 
             @Override
@@ -84,19 +91,17 @@ public final class UniversalDataWriter {
 
             @Override
             protected void onCompleted(WriterRunner writerRunner) {
-                synchronized (bufferedWriter) {
-                    try {
-                        bufferedWriter.write(Constants.START_FORMAT + writerRunner.getName());
+                try {
+                    bufferedWriter.write(Constants.START_FORMAT + writerRunner.getName());
+                    bufferedWriter.newLine();
+                    for (String line : writerRunner.getLines()) {
+                        bufferedWriter.write(line);
                         bufferedWriter.newLine();
-                        for (String line : writerRunner.getLines()) {
-                            bufferedWriter.write(line);
-                            bufferedWriter.newLine();
-                        }
-                        bufferedWriter.write(Constants.END_FORMAT);
-                        bufferedWriter.newLine();
-                    } catch (IOException e) {
-                        throw new RuntimeIOException(e);
                     }
+                    bufferedWriter.write(Constants.END_FORMAT);
+                    bufferedWriter.newLine();
+                } catch (IOException e) {
+                    throw new RuntimeIOException(e);
                 }
             }
         }).thenComposeAsync(TaskRunner::getOrRunFuture);

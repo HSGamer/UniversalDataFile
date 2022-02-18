@@ -88,7 +88,7 @@ public final class UniversalDataReader {
                         throw new RuntimeIOException(e);
                     }
                 })
-                .thenApplyAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get()))
+                .thenApplyAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get(), 0))
                 .thenComposeAsync(TaskRunner::getOrRunFuture);
     }
 
