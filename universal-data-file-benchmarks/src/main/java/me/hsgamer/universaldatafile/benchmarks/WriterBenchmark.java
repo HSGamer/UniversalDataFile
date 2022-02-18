@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Fork(3)
+@Fork(value = 3, jvmArgsAppend = {"-XX:+UseSerialGC", "-Xms2G", "-Xmx2G"})
 public class WriterBenchmark {
     private UniversalDataWriter writer;
     @Param({"1", "10", "50", "1000"})
