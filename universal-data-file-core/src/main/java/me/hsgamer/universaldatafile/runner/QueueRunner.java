@@ -24,14 +24,23 @@ public class QueueRunner<T extends TaskRunner> extends TaskRunner {
             checkRunning();
             checkPending();
         }
+        finishRun();
     }
 
     protected void onCompleted(T taskRunner) {
         // EMPTY
     }
 
-    protected void onFinalized() {
+    protected void onFinish() {
         // EMPTY
+    }
+
+    private void finishRun() {
+        onFinish();
+        completed.clear();
+        pending.clear();
+        running.forEach(runner -> runner.getOrRunFuture().cancel(true));
+        running.clear();
     }
 
     private void checkCompleted() {
@@ -41,11 +50,7 @@ public class QueueRunner<T extends TaskRunner> extends TaskRunner {
             try {
                 onCompleted(taskRunner);
             } catch (Exception exception) {
-                onFinalized();
-                completed.clear();
-                pending.clear();
-                running.forEach(runner -> runner.getOrRunFuture().cancel(true));
-                running.clear();
+                finishRun();
                 throw exception;
             }
         }
