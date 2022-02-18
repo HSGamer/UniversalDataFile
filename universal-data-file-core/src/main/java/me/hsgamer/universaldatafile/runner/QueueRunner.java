@@ -35,17 +35,19 @@ public class QueueRunner<T extends TaskRunner> extends TaskRunner {
     }
 
     private void checkCompleted() {
-        T taskRunner = completed.poll();
-        if (taskRunner == null) return;
-        try {
-            onCompleted(taskRunner);
-        } catch (Exception exception) {
-            onFinalized();
-            completed.clear();
-            pending.clear();
-            running.forEach(runner -> runner.getOrRunFuture().cancel(true));
-            running.clear();
-            throw exception;
+        while (true) {
+            T taskRunner = completed.poll();
+            if (taskRunner == null) break;
+            try {
+                onCompleted(taskRunner);
+            } catch (Exception exception) {
+                onFinalized();
+                completed.clear();
+                pending.clear();
+                running.forEach(runner -> runner.getOrRunFuture().cancel(true));
+                running.clear();
+                throw exception;
+            }
         }
     }
 
