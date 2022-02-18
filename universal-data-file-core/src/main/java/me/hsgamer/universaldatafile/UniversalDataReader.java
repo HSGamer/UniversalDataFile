@@ -77,12 +77,12 @@ public final class UniversalDataReader {
             } catch (IOException e) {
                 throw new RuntimeIOException(e);
             }
-        }).thenAcceptAsync(readerRunners -> {
+        }).thenComposeAsync(readerRunners -> {
             List<CompletableFuture<Void>> completableFutures = new ArrayList<>(readerRunners.size());
             for (ReaderRunner readerRunner : readerRunners) {
                 completableFutures.add(readerRunner.getOrRunFuture());
             }
-            CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0])).join();
+            return CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]));
         });
     }
 
