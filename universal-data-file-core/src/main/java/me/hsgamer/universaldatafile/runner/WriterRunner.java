@@ -18,10 +18,6 @@ public class WriterRunner extends TaskRunner {
         lines = writer.write();
     }
 
-    public boolean isCompleted() {
-        return getOrRunFuture().isDone();
-    }
-
     public String getName() {
         return writer.getName();
     }
