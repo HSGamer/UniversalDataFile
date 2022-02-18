@@ -26,13 +26,23 @@ public class QueueRunner<T extends TaskRunner> extends TaskRunner {
         // EMPTY
     }
 
+    protected void onFinalized() {
+        // EMPTY
+    }
+
     private void checkRunning() {
         T taskRunner = running.poll();
         if (taskRunner == null) return;
         if (!taskRunner.isCompleted())
             running.add(taskRunner);
-        else
-            onCompleted(taskRunner);
+        else {
+            try {
+                onCompleted(taskRunner);
+            } catch (Exception exception) {
+                onFinalized();
+                throw exception;
+            }
+        }
     }
 
     private void checkPending() {

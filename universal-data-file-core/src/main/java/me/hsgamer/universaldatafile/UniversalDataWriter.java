@@ -74,8 +74,7 @@ public final class UniversalDataWriter {
             final BufferedWriter bufferedWriter = new BufferedWriter(writer.get());
 
             @Override
-            public void run() {
-                super.run();
+            protected void onFinalized() {
                 try {
                     bufferedWriter.close();
                 } catch (IOException e) {

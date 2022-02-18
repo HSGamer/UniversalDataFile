@@ -63,31 +63,32 @@ public final class UniversalDataReader {
             return CompletableFuture.failedFuture(new IllegalStateException("No format reader"));
         }
         return CompletableFuture.supplyAsync(() -> {
-            try (BufferedReader bufferedReader = new BufferedReader(fromReader)) {
-                List<ReaderRunner> readerRunners = new ArrayList<>();
-                List<String> lines = new ArrayList<>();
-                FormatReader formatReader = null;
-                String line;
-                while ((line = bufferedReader.readLine()) != null) {
-                    if (formatReader == null && line.startsWith(Constants.START_FORMAT)) {
-                        String name = line.substring(Constants.START_FORMAT.length());
-                        formatReader = formatReaders.get(name);
-                    } else if (formatReader != null) {
-                        if (line.startsWith(Constants.END_FORMAT)) {
-                            List<String> finalLines = new ArrayList<>(lines);
-                            readerRunners.add(new ReaderRunner(formatReader, finalLines));
-                            lines.clear();
-                            formatReader = null;
-                        } else {
-                            lines.add(line);
+                    try (BufferedReader bufferedReader = new BufferedReader(fromReader)) {
+                        List<ReaderRunner> readerRunners = new ArrayList<>();
+                        List<String> lines = new ArrayList<>();
+                        FormatReader formatReader = null;
+                        String line;
+                        while ((line = bufferedReader.readLine()) != null) {
+                            if (formatReader == null && line.startsWith(Constants.START_FORMAT)) {
+                                String name = line.substring(Constants.START_FORMAT.length());
+                                formatReader = formatReaders.get(name);
+                            } else if (formatReader != null) {
+                                if (line.startsWith(Constants.END_FORMAT)) {
+                                    List<String> finalLines = new ArrayList<>(lines);
+                                    readerRunners.add(new ReaderRunner(formatReader, finalLines));
+                                    lines.clear();
+                                    formatReader = null;
+                                } else {
+                                    lines.add(line);
+                                }
+                            }
                         }
+                        return readerRunners;
+                    } catch (IOException e) {
+                        throw new RuntimeIOException(e);
                     }
-                }
-                return readerRunners;
-            } catch (IOException e) {
-                throw new RuntimeIOException(e);
-            }
-        }).thenApplyAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get()))
+                })
+                .thenApplyAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get()))
                 .thenComposeAsync(TaskRunner::getOrRunFuture);
     }
 
