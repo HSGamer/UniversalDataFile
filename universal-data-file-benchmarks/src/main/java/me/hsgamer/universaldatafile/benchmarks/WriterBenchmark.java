@@ -8,7 +8,7 @@ import java.io.Writer;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
-@BenchmarkMode({Mode.AverageTime,})
+@BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 @Fork(3)
 public class WriterBenchmark {
