@@ -2,6 +2,7 @@ package me.hsgamer.universaldatafile;
 
 import me.hsgamer.universaldatafile.api.FormatReader;
 import me.hsgamer.universaldatafile.exception.RuntimeIOException;
+import me.hsgamer.universaldatafile.runner.QueueRunner;
 import me.hsgamer.universaldatafile.runner.ReaderRunner;
 
 import java.io.*;
@@ -10,15 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class UniversalDataReader {
     private final Map<String, FormatReader> formatReaders;
     private final AtomicReference<Reader> reader;
+    private final AtomicInteger limitQueue;
 
     private UniversalDataReader() {
         formatReaders = new HashMap<>();
         reader = new AtomicReference<>();
+        limitQueue = new AtomicInteger(10);
     }
 
     public static UniversalDataReader create() {
@@ -42,6 +46,11 @@ public final class UniversalDataReader {
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
+    }
+
+    public UniversalDataReader setLimitQueue(int limit) {
+        this.limitQueue.set(limit);
+        return this;
     }
 
     public CompletableFuture<Void> read() {
@@ -77,13 +86,7 @@ public final class UniversalDataReader {
             } catch (IOException e) {
                 throw new RuntimeIOException(e);
             }
-        }).thenComposeAsync(readerRunners -> {
-            List<CompletableFuture<Void>> completableFutures = new ArrayList<>(readerRunners.size());
-            for (ReaderRunner readerRunner : readerRunners) {
-                completableFutures.add(readerRunner.getOrRunFuture());
-            }
-            return CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[0]));
-        });
+        }).thenComposeAsync(readerRunners -> new QueueRunner<>(readerRunners, limitQueue.get()).getOrRunFuture());
     }
 
     public void readSync() {

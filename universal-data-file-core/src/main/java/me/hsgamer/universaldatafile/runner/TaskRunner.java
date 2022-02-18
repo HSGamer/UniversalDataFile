@@ -13,4 +13,12 @@ public abstract class TaskRunner {
         }
         return completableFuture;
     }
+
+    public boolean isStarted() {
+        return completableFuture != null;
+    }
+
+    public boolean isCompleted() {
+        return isStarted() && completableFuture.isDone();
+    }
 }
