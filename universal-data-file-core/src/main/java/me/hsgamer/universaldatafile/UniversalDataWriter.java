@@ -19,16 +19,22 @@ public final class UniversalDataWriter {
     private final AtomicReference<Writer> writer;
     private final AtomicInteger limitRunningPool;
     private final AtomicInteger limitCompletedPool;
+    private final TagSettings tagSettings;
 
-    private UniversalDataWriter() {
+    private UniversalDataWriter(TagSettings tagSettings) {
         this.formatWriters = new ArrayList<>();
         this.writer = new AtomicReference<>();
         this.limitRunningPool = new AtomicInteger(10);
         this.limitCompletedPool = new AtomicInteger(10);
+        this.tagSettings = tagSettings;
     }
 
     public static UniversalDataWriter create() {
-        return new UniversalDataWriter();
+        return create(TagSettings.DEFAULT);
+    }
+
+    public static UniversalDataWriter create(TagSettings tagSettings) {
+        return new UniversalDataWriter(tagSettings);
     }
 
     public UniversalDataWriter addFormatWriter(FormatWriter formatWriter) {
@@ -69,7 +75,6 @@ public final class UniversalDataWriter {
             return CompletableFuture.failedFuture(new IllegalStateException("No format writer"));
         }
 
-
         return CompletableFuture.supplyAsync(() -> {
             List<WriterRunner> writerRunners = new LinkedList<>();
             for (FormatWriter formatWriter : formatWriters) {
@@ -92,13 +97,13 @@ public final class UniversalDataWriter {
             @Override
             protected void onCompleted(WriterRunner writerRunner) {
                 try {
-                    bufferedWriter.write(Constants.START_FORMAT + writerRunner.getName());
+                    bufferedWriter.write(tagSettings.startFormat + writerRunner.getName());
                     bufferedWriter.newLine();
                     for (String line : writerRunner.getLines()) {
                         bufferedWriter.write(line);
                         bufferedWriter.newLine();
                     }
-                    bufferedWriter.write(Constants.END_FORMAT);
+                    bufferedWriter.write(tagSettings.endFormat);
                     bufferedWriter.newLine();
                 } catch (IOException e) {
                     throw new RuntimeIOException(e);

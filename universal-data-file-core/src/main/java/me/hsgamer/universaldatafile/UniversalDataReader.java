@@ -19,15 +19,21 @@ public final class UniversalDataReader {
     private final Map<String, FormatReader> formatReaders;
     private final AtomicReference<Reader> reader;
     private final AtomicInteger limitRunningPool;
+    private final TagSettings tagSettings;
 
-    private UniversalDataReader() {
+    private UniversalDataReader(TagSettings tagSettings) {
         formatReaders = new HashMap<>();
         reader = new AtomicReference<>();
         limitRunningPool = new AtomicInteger(10);
+        this.tagSettings = tagSettings;
     }
 
     public static UniversalDataReader create() {
-        return new UniversalDataReader();
+        return create(TagSettings.DEFAULT);
+    }
+
+    public static UniversalDataReader create(TagSettings tagSettings) {
+        return new UniversalDataReader(tagSettings);
     }
 
     public UniversalDataReader addFormatReader(FormatReader reader) {
@@ -69,11 +75,11 @@ public final class UniversalDataReader {
                         FormatReader formatReader = null;
                         String line;
                         while ((line = bufferedReader.readLine()) != null) {
-                            if (formatReader == null && line.startsWith(Constants.START_FORMAT)) {
-                                String name = line.substring(Constants.START_FORMAT.length());
+                            if (formatReader == null && line.startsWith(tagSettings.startFormat)) {
+                                String name = line.substring(tagSettings.startFormat.length());
                                 formatReader = formatReaders.get(name);
                             } else if (formatReader != null) {
-                                if (line.startsWith(Constants.END_FORMAT)) {
+                                if (line.startsWith(tagSettings.endFormat)) {
                                     List<String> finalLines = new ArrayList<>(lines);
                                     readerRunners.add(new ReaderRunner(formatReader, finalLines));
                                     lines.clear();
