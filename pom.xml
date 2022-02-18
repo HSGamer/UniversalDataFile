@@ -10,6 +10,7 @@
     <modules>
         <module>universal-data-file-core</module>
         <module>universal-data-file-implementation</module>
+        <module>universal-data-file-benchmarks</module>
     </modules>
     <packaging>pom</packaging>
 
