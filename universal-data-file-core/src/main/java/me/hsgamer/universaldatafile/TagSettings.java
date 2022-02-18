@@ -1,6 +1,6 @@
 package me.hsgamer.universaldatafile;
 
-public class TagSettings {
+public final class TagSettings {
     public static final TagSettings DEFAULT = TagSettings.create("UDF");
 
     public final String startFormat;
