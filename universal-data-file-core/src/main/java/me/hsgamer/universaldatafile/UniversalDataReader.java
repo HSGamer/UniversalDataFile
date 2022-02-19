@@ -7,10 +7,7 @@ import me.hsgamer.universaldatafile.runner.ReaderRunner;
 import me.hsgamer.universaldatafile.runner.TaskRunner;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -36,9 +33,13 @@ public final class UniversalDataReader {
         return new UniversalDataReader(tagSettings);
     }
 
-    public UniversalDataReader addFormatReader(FormatReader reader) {
-        formatReaders.put(reader.getName(), reader);
+    public UniversalDataReader addFormatReader(Collection<FormatReader> formatReaders) {
+        formatReaders.forEach(formatReader -> this.formatReaders.put(formatReader.getName(), formatReader));
         return this;
+    }
+
+    public UniversalDataReader addFormatReader(FormatReader... formatReaders) {
+        return addFormatReader(List.of(formatReaders));
     }
 
     public UniversalDataReader setReader(Reader reader) {

@@ -8,6 +8,7 @@ import me.hsgamer.universaldatafile.runner.WriterRunner;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -37,9 +38,13 @@ public final class UniversalDataWriter {
         return new UniversalDataWriter(tagSettings);
     }
 
-    public UniversalDataWriter addFormatWriter(FormatWriter formatWriter) {
-        formatWriters.add(formatWriter);
+    public UniversalDataWriter addFormatWriter(Collection<FormatWriter> formatWriters) {
+        this.formatWriters.addAll(formatWriters);
         return this;
+    }
+
+    public UniversalDataWriter addFormatWriter(FormatWriter... formatWriters) {
+        return addFormatWriter(List.of(formatWriters));
     }
 
     public UniversalDataWriter setWriter(Writer writer) {
