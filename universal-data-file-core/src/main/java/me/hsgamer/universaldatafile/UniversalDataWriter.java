@@ -5,6 +5,7 @@ import me.hsgamer.universaldatafile.exception.RuntimeIOException;
 import me.hsgamer.universaldatafile.runner.QueueRunner;
 import me.hsgamer.universaldatafile.runner.TaskRunner;
 import me.hsgamer.universaldatafile.runner.WriterRunner;
+import org.jetbrains.annotations.Contract;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -38,20 +39,24 @@ public final class UniversalDataWriter {
         return new UniversalDataWriter(tagSettings);
     }
 
+    @Contract("_ -> this")
     public UniversalDataWriter addFormatWriter(Collection<FormatWriter> formatWriters) {
         this.formatWriters.addAll(formatWriters);
         return this;
     }
 
+    @Contract("_ -> this")
     public UniversalDataWriter addFormatWriter(FormatWriter... formatWriters) {
         return addFormatWriter(List.of(formatWriters));
     }
 
+    @Contract("_ -> this")
     public UniversalDataWriter setWriter(Writer writer) {
         this.writer.set(writer);
         return this;
     }
 
+    @Contract("_ -> this")
     public UniversalDataWriter setFile(File file) {
         try {
             Utils.createIfNotExists(file);
@@ -61,11 +66,13 @@ public final class UniversalDataWriter {
         }
     }
 
+    @Contract("_ -> this")
     public UniversalDataWriter setLimitRunningPool(int limit) {
         this.limitRunningPool.set(limit);
         return this;
     }
 
+    @Contract("_ -> this")
     public UniversalDataWriter setLimitCompletedPool(int limit) {
         this.limitCompletedPool.set(limit);
         return this;

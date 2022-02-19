@@ -5,6 +5,7 @@ import me.hsgamer.universaldatafile.exception.RuntimeIOException;
 import me.hsgamer.universaldatafile.runner.QueueRunner;
 import me.hsgamer.universaldatafile.runner.ReaderRunner;
 import me.hsgamer.universaldatafile.runner.TaskRunner;
+import org.jetbrains.annotations.Contract;
 
 import java.io.*;
 import java.util.*;
@@ -33,20 +34,24 @@ public final class UniversalDataReader {
         return new UniversalDataReader(tagSettings);
     }
 
+    @Contract("_ -> this")
     public UniversalDataReader addFormatReader(Collection<FormatReader> formatReaders) {
         formatReaders.forEach(formatReader -> this.formatReaders.put(formatReader.getName(), formatReader));
         return this;
     }
 
+    @Contract("_ -> this")
     public UniversalDataReader addFormatReader(FormatReader... formatReaders) {
         return addFormatReader(List.of(formatReaders));
     }
 
+    @Contract("_ -> this")
     public UniversalDataReader setReader(Reader reader) {
         this.reader.set(reader);
         return this;
     }
 
+    @Contract("_ -> this")
     public UniversalDataReader setFile(File file) {
         try {
             Utils.createIfNotExists(file);
@@ -56,6 +61,7 @@ public final class UniversalDataReader {
         }
     }
 
+    @Contract("_ -> this")
     public UniversalDataReader setLimitRunningPool(int limit) {
         this.limitRunningPool.set(limit);
         return this;
