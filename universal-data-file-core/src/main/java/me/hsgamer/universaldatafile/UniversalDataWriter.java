@@ -81,10 +81,14 @@ public final class UniversalDataWriter {
     public CompletableFuture<Void> write() {
         Writer toWriter = writer.get();
         if (toWriter == null) {
-            return CompletableFuture.failedFuture(new IllegalStateException("Writer is null"));
+            Exception exception = new IllegalStateException("Writer is null");
+            Utils.logThrowable(exception);
+            return CompletableFuture.failedFuture(exception);
         }
         if (formatWriters.isEmpty()) {
-            return CompletableFuture.failedFuture(new IllegalStateException("No format writer"));
+            Exception exception = new IllegalStateException("FormatWriters is empty");
+            Utils.logThrowable(exception);
+            return CompletableFuture.failedFuture(exception);
         }
 
         return CompletableFuture.supplyAsync(() -> {
@@ -102,6 +106,7 @@ public final class UniversalDataWriter {
                 try {
                     bufferedWriter.close();
                 } catch (IOException e) {
+                    Utils.logThrowable(e);
                     throw new RuntimeIOException(e);
                 }
             }
@@ -118,6 +123,7 @@ public final class UniversalDataWriter {
                     bufferedWriter.write(tagSettings.endFormat);
                     bufferedWriter.newLine();
                 } catch (IOException e) {
+                    Utils.logThrowable(e);
                     throw new RuntimeIOException(e);
                 }
             }

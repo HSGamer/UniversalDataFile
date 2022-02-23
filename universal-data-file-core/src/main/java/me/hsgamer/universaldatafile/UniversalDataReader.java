@@ -70,10 +70,14 @@ public final class UniversalDataReader {
     public CompletableFuture<Void> read() {
         Reader fromReader = reader.get();
         if (fromReader == null) {
-            return CompletableFuture.failedFuture(new IllegalStateException("Reader is null"));
+            Exception exception = new IllegalStateException("Reader is null");
+            Utils.logThrowable(exception);
+            return CompletableFuture.failedFuture(exception);
         }
         if (formatReaders.isEmpty()) {
-            return CompletableFuture.failedFuture(new IllegalStateException("No format reader"));
+            Exception exception = new IllegalStateException("No format reader");
+            Utils.logThrowable(exception);
+            return CompletableFuture.failedFuture(exception);
         }
         return CompletableFuture.supplyAsync(() -> {
                     try (BufferedReader bufferedReader = new BufferedReader(fromReader)) {
@@ -98,6 +102,7 @@ public final class UniversalDataReader {
                         }
                         return readerRunners;
                     } catch (IOException e) {
+                        Utils.logThrowable(e);
                         throw new RuntimeIOException(e);
                     }
                 })
