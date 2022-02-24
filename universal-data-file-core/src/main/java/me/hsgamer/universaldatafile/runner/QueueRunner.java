@@ -1,7 +1,5 @@
 package me.hsgamer.universaldatafile.runner;
 
-import me.hsgamer.universaldatafile.Utils;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -53,7 +51,6 @@ public class QueueRunner<T extends TaskRunner> extends TaskRunner {
                 onCompleted(taskRunner);
             } catch (Exception exception) {
                 finishRun();
-                Utils.logThrowable(exception);
                 throw exception;
             }
         }
